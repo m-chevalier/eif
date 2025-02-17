@@ -5,6 +5,7 @@
 #include <random>
 #include <algorithm>
 #include <unordered_set>
+#include <omp.h>
 
 #define EULER_CONSTANT 0.5772156649
 
@@ -107,7 +108,6 @@ class iForest
         double c;
         iTree* Trees;
         unsigned random_seed;
-
 	bool CheckExtensionLevel ();
 	bool CheckSampleSize ();
     protected:
@@ -117,10 +117,10 @@ class iForest
         iForest (int, int, int, int, int);
         ~iForest ();
         void fit (double*, int, int);
-        void predict (double*, double*, int);
         void predictSingleTree (double*, double*, int, int);
-	    void OutputTreeNodes (int);
-
+        void OutputTreeNodes (int);
+        void predict_parallel(double*, double*, int);
+        void predict_non_parallel(double*, double*, int);
 };
 
 

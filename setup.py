@@ -14,8 +14,9 @@ prjdir = os.path.dirname(__file__)
 def read(filename):
     return open(os.path.join(prjdir, filename)).read()
 
+extra_compile_args = ['-fopenmp','-std=c++11', '-Wcpp']
+extra_link_args = ['-fopenmp']
 
-extra_link_args = []
 libraries = []
 library_dirs = []
 include_dirs = []
@@ -29,10 +30,11 @@ setup(
     ext_modules=[Extension("eif",
                  sources=["_eif.pyx", "eif.cxx"],
                  include_dirs=[numpy.get_include()],
-                 extra_compile_args=['-std=c++11', '-Wcpp'],
+                 extra_compile_args=extra_compile_args,
+                 extra_link_args=extra_link_args,
                  language="c++")],
     scripts=[],
-    py_modules=['eif_old', 'version'],
+    py_modules=['eif_old', 'eif_new', 'version'],
     packages=[],
     license='License.txt',
     include_package_data=True,

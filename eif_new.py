@@ -60,7 +60,6 @@ class iForest(object):
         extension_level=0,
         n_jobs=1,
         seed=None,
-        batch_size=500,
     ):
         """
         iForest(X, ntrees,  sample_size, limit=None, extension_level=0, n_jobs=1, seed=None)
@@ -82,8 +81,6 @@ class iForest(object):
             Number of parallel jobs to run. Default is 1.
         seed : int
             Random seed for reproducibility.
-        batch_size : int
-            Size of the batch to be used in parallel computation of paths.
         """
 
         self.ntrees = ntrees
@@ -94,7 +91,6 @@ class iForest(object):
         self.exlevel = extension_level
         self.n_jobs = n_jobs
         self.seed = seed
-        self.batch_size = batch_size
 
         dim = X.shape[1]
 
@@ -104,8 +100,6 @@ class iForest(object):
         # Check input parameters
         # ----------------------
 
-        if batch_size is None or batch_size < 1:
-            raise Exception("Batch size should be an integer greater than 0.")
         if self.exlevel < 0:
             raise Exception(
                 "Extension level has to be an integer between 0 and "
@@ -187,17 +181,25 @@ class iForest(object):
         if X_in.all() == None:
             raise Exception("X_in should not be None")
 
-        BATCH_SIZE = 100
-        batches = len(X_in) // BATCH_SIZE
-        if len(X_in) % BATCH_SIZE != 0:
+        cpu_count = joblib.cpu_count()
+
+        num_workers = self.n_jobs
+        if self.n_jobs == -1:
+            num_workers = cpu_count
+
+        batch_size = len(X_in) // num_workers
+        batches = len(X_in) // batch_size
+        if len(X_in) % batch_size != 0:
             batches += 1
 
-        S = Parallel(n_jobs=self.n_jobs, max_nbytes=None, verbose=True)(
+        S = Parallel(n_jobs=self.n_jobs, max_nbytes=None, verbose=True, backend="threading")(
             delayed(compute_path)(
                 self.ntrees,
-                X_in[batch * BATCH_SIZE : min((batch + 1) * BATCH_SIZE, len(X_in))],
+                X_in,
                 self.c,
                 self.Trees,
+                batch,
+                batch_size
             )
             for batch in range(batches)
         )
@@ -205,9 +207,9 @@ class iForest(object):
         return np.concatenate(S)
 
 
-def compute_path(ntrees, X, c, Trees):
+def compute_path(ntrees, X, c, Trees, batch, batch_size):
     sub_S = []
-    for i in range(len(X)):
+    for i in range(batch*batch_size, min((batch + 1) * batch_size, len(X))):
         h_temp = 0
         for j in range(ntrees):
             h_temp += (
