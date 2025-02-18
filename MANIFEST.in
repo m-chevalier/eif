@@ -4,3 +4,4 @@ include __eif.pxd
 include  _eif.pyx
 include eif.cxx
 include figures/*
+include *.pyi

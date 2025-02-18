@@ -34,7 +34,7 @@ setup(
                  extra_link_args=extra_link_args,
                  language="c++")],
     scripts=[],
-    py_modules=['eif_old', 'eif_new', 'version'],
+    py_modules=['version'],
     packages=[],
     license='License.txt',
     include_package_data=True,
@@ -43,4 +43,5 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/sahandha/eif',
     install_requires=["numpy", "cython", "joblib"],
+    zip_safe=False,
 )

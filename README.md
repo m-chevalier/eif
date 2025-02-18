@@ -147,6 +147,12 @@ month={},}
 
 ## Releases
 
+### v3.0.0-dev (current)
+#### 2025-FEB-17
+- Added multi-core processing when calling `compute_paths(X_in=X, parallel=True)`
+- Fixed parameter names
+- Removed old implementations
+
 ### v2.0.2
 #### 2019-NOV-14
 - Convert code into C++ with using cython. 

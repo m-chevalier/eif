@@ -25,10 +25,30 @@ cdef class iForest:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def __cinit__ (self, np.ndarray[double, ndim=2] X not None, int ntrees, int sample_size, int limit=0, int ExtensionLevel=0, int seed=-1):
-        if ExtensionLevel < 0:
+    def __cinit__ (self, np.ndarray[double, ndim=2] X not None, int ntrees, int sample_size, int limit=0, int extension_level=0, int seed=-1):
+        """
+        iForest(X, ntrees,  sample_size, limit=None, extension_level=0, seed=-1)
+        Initialize a forest by passing in training data, number of trees to be used and the subsample size.
+
+        Parameters
+        ----------
+        X : list of list of floats
+            Training data. List of [x1,x2,...,xn] coordinate points.
+        ntrees : int
+            Number of trees to be used.
+        sample_size : int
+            The size of the subsample to be used in creation of each tree. Must be smaller than |X|
+        limit : int
+            The maximum allowed tree depth. This is by default set to average length of unsucessful search in a binary tree.
+        extension_level : int
+            Specifies degree of freedom in choosing the hyperplanes for dividing up data. Must be smaller than the dimension n of the dataset.
+        seed : int
+            Random seed for reproducibility.
+        """
+        
+        if extension_level < 0:
             raise Exception("Wrong Extension")
-        self.thisptr = new __eif.iForest (ntrees, sample_size, limit, ExtensionLevel, seed)
+        self.thisptr = new __eif.iForest (ntrees, sample_size, limit, extension_level, seed)
         if not X.flags['C_CONTIGUOUS']:
             X = X.copy(order='C')
         self.size_X = X.shape[0]
@@ -36,7 +56,7 @@ cdef class iForest:
         self.sample = sample_size
         self._ntrees = ntrees
         self._limit = self.thisptr.limit
-        self.exlevel = ExtensionLevel
+        self.exlevel = extension_level
         self.thisptr.fit (<double*> np.PyArray_DATA(X), self.size_X, self.dim)
 
     @property
@@ -53,6 +73,23 @@ cdef class iForest:
     @cython.boundscheck(False)
     @cython.wraparound(False)
     def compute_paths (self, np.ndarray[double, ndim=2] X_in=None, parallel=True):
+        """
+        compute_paths(X_in, parallel=True)
+        Compute anomaly scores for all data points in a dataset X_in
+
+        Parameters
+        ----------
+        X_in : list of list of floats
+            Data to be scored. iForest.Trees are used for computing the depth reached in each tree by each data point.
+        parallel : bool
+            If True, the computation is done in parallel. If False, the computation is done in a single thread.
+
+        Returns
+        -------
+        float
+            Anomaly score for a given data point.
+        """
+
         cdef np.ndarray[double, ndim=1, mode="c"] S
         if X_in is None:
             S = np.empty(self.size_X, dtype=np.float64, order='C')
