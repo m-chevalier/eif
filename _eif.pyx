@@ -8,6 +8,7 @@ import cython
 import numpy as np
 cimport numpy as np
 from version import __version__
+from libcpp cimport bool
 
 cimport __eif
 
@@ -21,39 +22,21 @@ cdef class iForest:
     cdef int sample
     cdef int tree_index
     cdef int exlevel
+    cdef bool parallel_mode
     cdef __eif.iForest* thisptr
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def __cinit__ (self, np.ndarray[double, ndim=2] X not None, int ntrees, int sample_size, int limit=0, int extension_level=0, int seed=-1):
-        """
-        iForest(X, ntrees,  sample_size, limit=None, extension_level=0, seed=-1)
-        Initialize a forest by passing in training data, number of trees to be used and the subsample size.
-
-        Parameters
-        ----------
-        X : list of list of floats
-            Training data. List of [x1,x2,...,xn] coordinate points.
-        ntrees : int
-            Number of trees to be used.
-        sample_size : int
-            The size of the subsample to be used in creation of each tree. Must be smaller than |X|
-        limit : int
-            The maximum allowed tree depth. This is by default set to average length of unsucessful search in a binary tree.
-        extension_level : int
-            Specifies degree of freedom in choosing the hyperplanes for dividing up data. Must be smaller than the dimension n of the dataset.
-        seed : int
-            Random seed for reproducibility.
-        """
-        
+    def __cinit__ (self, np.ndarray[double, ndim=2] X not None, int ntrees, int sample_size, int limit=0, int extension_level=0, int seed=-1, bool parallel=True):  
         if extension_level < 0:
             raise Exception("Wrong Extension")
-        self.thisptr = new __eif.iForest (ntrees, sample_size, limit, extension_level, seed)
+        self.thisptr = new __eif.iForest (ntrees, sample_size, limit, extension_level, seed, <bint> parallel)
         if not X.flags['C_CONTIGUOUS']:
             X = X.copy(order='C')
         self.size_X = X.shape[0]
         self.dim = X.shape[1]
         self.sample = sample_size
+        self.parallel_mode = <bint> parallel
         self._ntrees = ntrees
         self._limit = self.thisptr.limit
         self.exlevel = extension_level
@@ -72,39 +55,17 @@ cdef class iForest:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def compute_paths (self, np.ndarray[double, ndim=2] X_in=None, parallel=True):
-        """
-        compute_paths(X_in, parallel=True)
-        Compute anomaly scores for all data points in a dataset X_in
-
-        Parameters
-        ----------
-        X_in : list of list of floats
-            Data to be scored. iForest.Trees are used for computing the depth reached in each tree by each data point.
-        parallel : bool
-            If True, the computation is done in parallel. If False, the computation is done in a single thread.
-
-        Returns
-        -------
-        float
-            Anomaly score for a given data point.
-        """
+    def compute_paths (self, np.ndarray[double, ndim=2] X_in=None):
 
         cdef np.ndarray[double, ndim=1, mode="c"] S
         if X_in is None:
             S = np.empty(self.size_X, dtype=np.float64, order='C')
-            if parallel:
-                self.thisptr.predict_parallel(<double*> np.PyArray_DATA(S), NULL, 0)
-            else:
-                self.thisptr.predict_non_parallel(<double*> np.PyArray_DATA(S), NULL, 0)
+            self.thisptr.predict(<double*> np.PyArray_DATA(S), NULL, 0)
         else:
             if not X_in.flags['C_CONTIGUOUS']:
                 X_in = X_in.copy(order='C')
             S = np.empty(X_in.shape[0], dtype=np.float64, order='C')
-            if parallel:
-                self.thisptr.predict_parallel(<double*> np.PyArray_DATA(S), <double*> np.PyArray_DATA(X_in), X_in.shape[0])
-            else:
-                self.thisptr.predict_non_parallel(<double*> np.PyArray_DATA(S), <double*> np.PyArray_DATA(X_in), X_in.shape[0])
+            self.thisptr.predict(<double*> np.PyArray_DATA(S), <double*> np.PyArray_DATA(X_in), X_in.shape[0])
         return S
 
     @cython.boundscheck(False)

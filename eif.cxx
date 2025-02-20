@@ -283,9 +283,9 @@ double Path::find_path(Node *node_in)
 /****************************
 		Class iForest
  ****************************/
-iForest::iForest(int ntrees_in, int sample_in, int limit_in = 0, int exlevel_in = 0, int random_seed_in = -1)
+iForest::iForest(int ntrees_in, int sample_in, int limit_in = 0, int exlevel_in = 0, int random_seed_in = -1, bool parallel_in=1)
 {
-
+	parallel_mode = parallel_in;
 	ntrees = ntrees_in;
 	sample = sample_in;
 	limit = limit_in;
@@ -359,14 +359,13 @@ void iForest::fit(double *X_in, int nobjs_in, int dim_in)
 	if (!CheckExtensionLevel())
 		return;
 
-	std::vector<double> Xsubset;
-
+	#pragma omp parallel for if(this->parallel_mode)
 	for (int i = 0; i < ntrees; i++)
 	{
 		/* Select a random subset of X_in of size sample_in */
 		RANDOM_ENGINE random_engine(random_seed + i);
 		std::vector<int> sample_index = sample_without_replacement(sample, nobjs, random_engine);
-		Xsubset.clear();
+		std::vector<double> Xsubset;
 		for (int j = 0; j < sample; j++)
 		{
 			for (int k = 0; k < dim; k++)
@@ -380,7 +379,7 @@ void iForest::fit(double *X_in, int nobjs_in, int dim_in)
 	}
 }
 
-void iForest::predict_non_parallel(double *S, double *X_in = NULL, int size_in = 0)
+void iForest::predict(double *S, double *X_in = NULL, int size_in = 0)
 {
 
 	if (X_in == NULL)
@@ -389,29 +388,7 @@ void iForest::predict_non_parallel(double *S, double *X_in = NULL, int size_in =
 		size_in = nobjs;
 	}
 
-	for (int i = 0; i < size_in; i++)
-	{
-		double htemp = 0.0;
-		for (int j = 0; j < ntrees; j++)
-		{
-			Path path(dim, &X_in[i * dim], Trees[j]);
-			htemp += path.pathlength;
-		}
-		double havg = htemp / ntrees;
-		S[i] = std::pow(2.0, -havg / c);
-	}
-}
-
-void iForest::predict_parallel(double *S, double *X_in = NULL, int size_in = 0)
-{
-
-	if (X_in == NULL)
-	{
-		X_in = X;
-		size_in = nobjs;
-	}
-
-	#pragma omp parallel for
+	#pragma omp parallel for if(this->parallel_mode)
 	for (int i = 0; i < size_in; i++)
 	{
 		double htemp = 0.0;

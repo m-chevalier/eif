@@ -104,6 +104,7 @@ class iForest
         int sample;
         int ntrees;
         int exlevel;
+        bool parallel_mode;
         double* X;
         double c;
         iTree* Trees;
@@ -114,13 +115,12 @@ class iForest
 
     public:
         int limit;
-        iForest (int, int, int, int, int);
+        iForest (int, int, int, int, int, bool);
         ~iForest ();
         void fit (double*, int, int);
         void predictSingleTree (double*, double*, int, int);
         void OutputTreeNodes (int);
-        void predict_parallel(double*, double*, int);
-        void predict_non_parallel(double*, double*, int);
+        void predict(double*, double*, int);
 };
 
 

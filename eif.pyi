@@ -1,6 +1,8 @@
+import numpy as np
+
 class iForest:
     
-    def __init__(self, X, ntrees: int, sample_size: int, limit:int, extension_level:int, seed:int):
+    def __init__(self, X: np.ndarray, ntrees: int, sample_size: int, limit:int, extension_level:int, seed:int, parallel: bool):
         """
         iForest(X, ntrees,  sample_size, limit=None, extension_level=0, seed=-1)
         Initialize a forest by passing in training data, number of trees to be used and the subsample size.
@@ -19,25 +21,25 @@ class iForest:
             Specifies degree of freedom in choosing the hyperplanes for dividing up data. Must be smaller than the dimension n of the dataset.
         seed : int
             Random seed for reproducibility.
+        parallel : bool
+            If True, the computation is done in parallel. If False, the computation is done in a single thread.
         """
         ...
     
-    def compute_paths(self, X_in, parallel: bool):
+    def compute_paths(self, X_in: np.ndarray) -> np.ndarray:
         """
-        compute_paths(X_in, parallel=True)
+        compute_paths(X_in)
         Compute anomaly scores for all data points in a dataset X_in
 
         Parameters
         ----------
         X_in : list of list of floats
             Data to be scored. iForest.Trees are used for computing the depth reached in each tree by each data point.
-        parallel : bool
-            If True, the computation is done in parallel. If False, the computation is done in a single thread.
 
         Returns
         -------
-        float
-            Anomaly score for a given data point.
+        anomaly_scores : numpy array of shape (n_samples,)
+            The anomaly score of the input samples.
         """
         ...
 

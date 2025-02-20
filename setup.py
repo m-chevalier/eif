@@ -42,6 +42,6 @@ setup(
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
     url='https://github.com/sahandha/eif',
-    install_requires=["numpy", "cython", "joblib"],
+    install_requires=["numpy", "cython"],
     zip_safe=False,
 )
