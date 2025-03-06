@@ -25,16 +25,16 @@ class iForest:
             If True, the computation is done in parallel. If False, the computation is done in a single thread.
         """
         ...
-    
-    def compute_paths(self, X_in: np.ndarray) -> np.ndarray:
+
+    def decision_function(self, X: np.ndarray) -> np.ndarray:
         """
-        compute_paths(X_in)
-        Compute anomaly scores for all data points in a dataset X_in
+        decision_function(X)
+        Compute anomaly scores for all data points in a dataset X
 
         Parameters
         ----------
-        X_in : list of list of floats
-            Data to be scored. iForest.Trees are used for computing the depth reached in each tree by each data point.
+        X : numpy array of shape (n_samples, n_features)
+            The training input samples.
 
         Returns
         -------
@@ -42,6 +42,7 @@ class iForest:
             The anomaly score of the input samples.
         """
         ...
+
 
     def compute_paths_single_tree(self, X_in, tree_index: int):
         ...

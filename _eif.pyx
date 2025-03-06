@@ -55,8 +55,7 @@ cdef class iForest:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def compute_paths (self, np.ndarray[double, ndim=2] X_in=None):
-
+    def decision_function (self, np.ndarray[double, ndim=2] X_in=None):
         cdef np.ndarray[double, ndim=1, mode="c"] S
         if X_in is None:
             S = np.empty(self.size_X, dtype=np.float64, order='C')
