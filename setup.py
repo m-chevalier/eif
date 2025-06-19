@@ -1,6 +1,5 @@
 import sys
 import os
-import numpy
 from Cython.Distutils import build_ext
 try:
     from setuptools import setup, find_packages
@@ -10,6 +9,7 @@ except ImportError:
     from distutils.extension import Extension
 prjdir = os.path.dirname(__file__)
 
+import numpy
 
 def read(filename):
     return open(os.path.join(prjdir, filename)).read()
