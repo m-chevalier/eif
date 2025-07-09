@@ -26,15 +26,18 @@ class iForest:
         """
         ...
 
-    def decision_function(self, X: np.ndarray) -> np.ndarray:
-        """
-        decision_function(X)
-        Compute anomaly scores for all data points in a dataset X
+    def decision_function(self, X):
+        """Predict raw anomaly score of X using the fitted detector.
+
+        The anomaly score of an input sample is computed based on different
+        detector algorithms. For consistency, outliers are assigned with
+        larger anomaly scores.
 
         Parameters
         ----------
         X : numpy array of shape (n_samples, n_features)
-            The training input samples.
+            The training input samples. Sparse matrices are accepted only
+            if they are supported by the base estimator.
 
         Returns
         -------
@@ -48,4 +51,22 @@ class iForest:
         ...
 
     def output_tree_nodes(self, tree_index: int):
+        ...
+
+    def fit(self, X, y=None):
+        """Fit detector. y is ignored in unsupervised methods.
+
+        Parameters
+        ----------
+        X : numpy array of shape (n_samples, n_features)
+            The input samples.
+
+        y : Ignored
+            Not used, present for API consistency by convention.
+
+        Returns
+        -------
+        self : object
+            Fitted estimator.
+        """
         ...

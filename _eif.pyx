@@ -9,6 +9,7 @@ import numpy as np
 cimport numpy as np
 from version import __version__
 from libcpp cimport bool
+from sklearn.utils import check_array
 
 cimport __eif
 
@@ -31,16 +32,11 @@ cdef class iForest:
         if extension_level < 0:
             raise Exception("Wrong Extension")
         self.thisptr = new __eif.iForest (ntrees, sample_size, limit, extension_level, seed, <bint> parallel)
-        if not X.flags['C_CONTIGUOUS']:
-            X = X.copy(order='C')
-        self.size_X = X.shape[0]
-        self.dim = X.shape[1]
         self.sample = sample_size
         self.parallel_mode = <bint> parallel
         self._ntrees = ntrees
         self._limit = self.thisptr.limit
         self.exlevel = extension_level
-        self.thisptr.fit (<double*> np.PyArray_DATA(X), self.size_X, self.dim)
 
     @property
     def ntrees(self):
@@ -55,31 +51,44 @@ cdef class iForest:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def decision_function (self, np.ndarray[double, ndim=2] X_in=None):
+    def decision_function (self, X):
         cdef np.ndarray[double, ndim=1, mode="c"] S
-        if X_in is None:
-            S = np.empty(self.size_X, dtype=np.float64, order='C')
-            self.thisptr.predict(<double*> np.PyArray_DATA(S), NULL, 0)
-        else:
-            if not X_in.flags['C_CONTIGUOUS']:
-                X_in = X_in.copy(order='C')
-            S = np.empty(X_in.shape[0], dtype=np.float64, order='C')
-            self.thisptr.predict(<double*> np.PyArray_DATA(S), <double*> np.PyArray_DATA(X_in), X_in.shape[0])
+        X = check_array(X)
+        if not X_in.flags['C_CONTIGUOUS']:
+            X_in = X_in.copy(order='C')
+        S = np.empty(X_in.shape[0], dtype=np.float64, order='C')
+        self.thisptr.predict(<double*> np.PyArray_DATA(S), <double*> np.PyArray_DATA(X_in), X_in.shape[0])
         return S
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def compute_paths_single_tree (self, np.ndarray[double, ndim=2] X_in=None, tree_index=0):
+    def compute_paths_single_tree (self, X, tree_index=0):
         cdef np.ndarray[double, ndim=1, mode="c"] S
-        if X_in is None:
-            S = np.empty(self.size_X, dtype=np.float64, order='C')
-            self.thisptr.predictSingleTree (<double*> np.PyArray_DATA(S), NULL, 0, tree_index)
-        else:
-            if not X_in.flags['C_CONTIGUOUS']:
-                X_in = X_in.copy(order='C')
-            S = np.empty(X_in.shape[0], dtype=np.float64, order='C')
-            self.thisptr.predictSingleTree (<double*> np.PyArray_DATA(S), <double*> np.PyArray_DATA(X_in), X_in.shape[0], tree_index)
+        X = check_array(X)
+        if not X_in.flags['C_CONTIGUOUS']:
+            X_in = X_in.copy(order='C')
+        S = np.empty(X_in.shape[0], dtype=np.float64, order='C')
+        self.thisptr.predictSingleTree (<double*> np.PyArray_DATA(S), <double*> np.PyArray_DATA(X_in), X_in.shape[0], tree_index)
         return S
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def def predict(self, X):
+        X = check_array(X)
+        if not X.flags['C_CONTIGUOUS']:
+            X = X.copy(order='C')
+        cdef np.ndarray[double, ndim=1, mode="c"] S = self.decision_function(X)
+        return S
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def fit(self, X, y=None):
+        X = check_array(X)
+        if not X.flags['C_CONTIGUOUS']:
+            X = X.copy(order='C')
+        self.size_X = X.shape[0]
+        self.dim = X.shape[1]
+        self.thisptr.fit (<double*> np.PyArray_DATA(X), self.size_X, self.dim)
 
     def output_tree_nodes (self, int tree_index):
         self.thisptr.OutputTreeNodes (tree_index)
