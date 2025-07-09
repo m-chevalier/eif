@@ -73,7 +73,7 @@ cdef class iForest:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def def predict(self, X):
+    def predict(self, X):
         X = check_array(X)
         if not X.flags['C_CONTIGUOUS']:
             X = X.copy(order='C')
