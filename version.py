@@ -1,6 +1,6 @@
 """Extended Isolation Forest version"""
 
-version_tag = (3, 0, 1, "dev")
+version_tag = (3, 1, 0, "dev")
 __version__ = '.'.join(map(str, version_tag[:3]))
 
 if len(version_tag) > 3:
