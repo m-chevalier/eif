@@ -54,10 +54,10 @@ cdef class iForest:
     def decision_function (self, X):
         cdef np.ndarray[double, ndim=1, mode="c"] S
         X = check_array(X)
-        if not X_in.flags['C_CONTIGUOUS']:
-            X_in = X_in.copy(order='C')
-        S = np.empty(X_in.shape[0], dtype=np.float64, order='C')
-        self.thisptr.predict(<double*> np.PyArray_DATA(S), <double*> np.PyArray_DATA(X_in), X_in.shape[0])
+        if not X.flags['C_CONTIGUOUS']:
+            X = X.copy(order='C')
+        S = np.empty(X.shape[0], dtype=np.float64, order='C')
+        self.thisptr.predict(<double*> np.PyArray_DATA(S), <double*> np.PyArray_DATA(X), X.shape[0])
         return S
 
     @cython.boundscheck(False)
@@ -65,10 +65,10 @@ cdef class iForest:
     def compute_paths_single_tree (self, X, tree_index=0):
         cdef np.ndarray[double, ndim=1, mode="c"] S
         X = check_array(X)
-        if not X_in.flags['C_CONTIGUOUS']:
-            X_in = X_in.copy(order='C')
-        S = np.empty(X_in.shape[0], dtype=np.float64, order='C')
-        self.thisptr.predictSingleTree (<double*> np.PyArray_DATA(S), <double*> np.PyArray_DATA(X_in), X_in.shape[0], tree_index)
+        if not X.flags['C_CONTIGUOUS']:
+            X = X.copy(order='C')
+        S = np.empty(X.shape[0], dtype=np.float64, order='C')
+        self.thisptr.predictSingleTree (<double*> np.PyArray_DATA(S), <double*> np.PyArray_DATA(X), X.shape[0], tree_index)
         return S
 
     @cython.boundscheck(False)
