@@ -17,6 +17,19 @@ def read(filename):
 extra_compile_args = ['-fopenmp','-std=c++11', '-Wcpp']
 extra_link_args = ['-fopenmp']
 
+if sys.platform == 'darwin':
+    # On macOS, we need to specify the path to LLVM libraries and headers
+    # if installed via Homebrew, otherwise it will use the system's LLVM.
+    # This is necessary for OpenMP support.
+    if not os.path.exists('/opt/homebrew/opt/llvm/lib'):
+        raise RuntimeError("LLVM not found. Please install LLVM via Homebrew: `brew install llvm`")
+    # Set the environment variables to use Homebrew's LLVM
+    os.environ['CC'] = '/opt/homebrew/opt/llvm/bin/clang'
+    os.environ['CXX'] = '/opt/homebrew/opt/llvm/bin/clang++'
+
+    extra_compile_args += ["-L/opt/homebrew/opt/llvm/lib", "-I/opt/homebrew/opt/llvm/include"]
+
+
 libraries = []
 library_dirs = []
 include_dirs = []
