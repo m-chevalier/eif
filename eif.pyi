@@ -2,15 +2,13 @@ import numpy as np
 
 class iForest:
     
-    def __init__(self, X: np.ndarray, ntrees: int, sample_size: int, limit:int, extension_level:int, seed:int, parallel: bool):
+    def __init__(self, ntrees: int, sample_size: int, limit:int, extension_level:int, seed:int, parallel: bool):
         """
         iForest(X, ntrees,  sample_size, limit=None, extension_level=0, seed=-1)
         Initialize a forest by passing in training data, number of trees to be used and the subsample size.
 
         Parameters
         ----------
-        X : list of list of floats
-            Training data. List of [x1,x2,...,xn] coordinate points.
         ntrees : int
             Number of trees to be used.
         sample_size : int
